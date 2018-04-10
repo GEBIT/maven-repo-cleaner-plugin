@@ -1,11 +1,15 @@
 package org.jenkinsci.plugins.mavenrepocleaner;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+
+import org.kohsuke.stapler.DataBoundConstructor;
+
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.maven.AbstractMavenProject;
-import hudson.maven.MavenModuleSet;
-import hudson.maven.MavenModuleSetBuild;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
@@ -15,11 +19,7 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
-import org.kohsuke.stapler.DataBoundConstructor;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
+import jenkins.MasterToSlaveFileCallable;
 
 /**
  * @author: <a hef="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
@@ -35,8 +35,7 @@ public class MavenRepoCleanerPostBuildTask extends Recorder {
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
 
         final long started = build.getTimeInMillis();
-        FilePath.FileCallable<Collection<String>> cleanup =
-            new FileCallableImpl(started);
+        FilePath.FileCallable<Collection<String>> cleanup = new FileCallableImpl(started);
         Collection<String> removed = build.getWorkspace().child(".repository").act(cleanup);
         if (removed.size() > 0) {
             listener.getLogger().println( removed.size() + " unused artifacts removed from private maven repository" );
@@ -44,7 +43,8 @@ public class MavenRepoCleanerPostBuildTask extends Recorder {
         return true;
     }
 
-    public BuildStepMonitor getRequiredMonitorService() {
+    @Override
+	public BuildStepMonitor getRequiredMonitorService() {
         return BuildStepMonitor.NONE;
     }
 
@@ -66,12 +66,13 @@ public class MavenRepoCleanerPostBuildTask extends Recorder {
                     || AbstractMavenProject.class.isAssignableFrom(jobType);
         }
     }
-    private static class FileCallableImpl implements FilePath.FileCallable<Collection<String>> {
+    private static class FileCallableImpl extends MasterToSlaveFileCallable<Collection<String>> {
         private final long started;
         public FileCallableImpl(long started) {
             this.started = started;
         }
-        public Collection<String> invoke(File repository, VirtualChannel channel) throws IOException, InterruptedException {
+        @Override
+		public Collection<String> invoke(File repository, VirtualChannel channel) throws IOException, InterruptedException {
             return new RepositoryCleaner(started).clean(repository);
         }
     }

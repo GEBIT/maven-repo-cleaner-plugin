@@ -23,28 +23,27 @@
  */
 package org.jenkinsci.plugins.mavenrepocleaner;
 
-import static hudson.Util.fixEmptyAndTrim;
 import static hudson.Util.fixEmpty;
-import hudson.Extension;
-import hudson.model.JobProperty;
-import hudson.model.JobPropertyDescriptor;
-import hudson.model.AbstractProject;
-import hudson.model.Job;
-import hudson.scheduler.CronTab;
-import hudson.scheduler.CronTabList;
+import static hudson.Util.fixEmptyAndTrim;
 
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.Collections;
-
-import hudson.triggers.TimerTrigger;
-import net.sf.json.JSONObject;
 
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
 import antlr.ANTLRException;
+import hudson.Extension;
+import hudson.model.AbstractProject;
+import hudson.model.Job;
+import hudson.model.JobProperty;
+import hudson.model.JobPropertyDescriptor;
+import hudson.scheduler.CronTab;
+import hudson.scheduler.CronTabList;
+import hudson.triggers.TimerTrigger;
+import net.sf.json.JSONObject;
 
 /**
  * 
@@ -91,7 +90,8 @@ public class MavenRepoCleanerProperty extends JobProperty<AbstractProject<?,?>> 
             return AbstractProject.class.isAssignableFrom(jobType);
         }
 
-        public String getDisplayName() {
+        @Override
+		public String getDisplayName() {
             return "Maven Repo Cleaner";
         }
 

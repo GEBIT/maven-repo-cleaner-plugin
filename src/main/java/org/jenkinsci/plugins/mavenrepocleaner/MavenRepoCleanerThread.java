@@ -23,19 +23,6 @@
  */
 package org.jenkinsci.plugins.mavenrepocleaner;
 
-import antlr.ANTLRException;
-
-import hudson.FilePath;
-import hudson.Util;
-import hudson.Extension;
-import hudson.model.AbstractProject;
-import hudson.model.AsyncPeriodicWork;
-import hudson.model.Hudson;
-import hudson.model.Node;
-import hudson.model.Slave;
-import hudson.model.TaskListener;
-import hudson.model.TopLevelItem;
-
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -45,6 +32,18 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.logging.Logger;
+
+import antlr.ANTLRException;
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.Util;
+import hudson.model.AbstractProject;
+import hudson.model.AsyncPeriodicWork;
+import hudson.model.Node;
+import hudson.model.Slave;
+import hudson.model.TaskListener;
+import hudson.model.TopLevelItem;
+import jenkins.model.Jenkins;
 
 /**
  * Clean up Maven repositories
@@ -65,11 +64,13 @@ public class MavenRepoCleanerThread extends AsyncPeriodicWork {
     }
     
     
-    public long getRecurrencePeriod() {
+    @Override
+	public long getRecurrencePeriod() {
         return HOUR;
     }
     
-    protected void execute(TaskListener listener) throws InterruptedException, IOException {
+    @Override
+	protected void execute(TaskListener listener) throws InterruptedException, IOException {
         try {
             if(disabled) {
                 LOGGER.warning("Disabled. Skipping execution");
@@ -93,7 +94,7 @@ public class MavenRepoCleanerThread extends AsyncPeriodicWork {
     }
     
     public void checkTriggers(final Calendar cal) throws ANTLRException, IOException, InterruptedException  {
-        Hudson inst = Hudson.getInstance();
+        Jenkins inst = Jenkins.getInstance();
 
         MavenRepoCleanerProperty.DescriptorImpl d = (MavenRepoCleanerProperty.DescriptorImpl)inst.getDescriptor(MavenRepoCleanerProperty.class);
 
@@ -113,7 +114,7 @@ public class MavenRepoCleanerThread extends AsyncPeriodicWork {
         theInstance.run();
     }
 
-    private void process(Hudson h, int expirationDays) throws IOException, InterruptedException {
+    private void process(Jenkins h, int expirationDays) throws IOException, InterruptedException {
         File jobs = new File(h.getRootDir(), "jobs");
         File[] dirs = jobs.listFiles(DIR_FILTER);
         if(dirs==null)      return;
@@ -128,7 +129,7 @@ public class MavenRepoCleanerThread extends AsyncPeriodicWork {
     private boolean shouldBeDeleted(String jobName, FilePath dir, Node n, int expirationDays) throws IOException, InterruptedException {
         // TODO: the use of remoting is not optimal.
         // One remoting can execute "exists", "lastModified", and "delete" all at once.
-        TopLevelItem item = Hudson.getInstance().getItem(jobName);
+        TopLevelItem item = Jenkins.getInstance().getItem(jobName);
         if(item==null) {
             // no such project anymore
             LOGGER.fine("Repository directory "+dir+" is not owned by any project");
@@ -229,7 +230,8 @@ public class MavenRepoCleanerThread extends AsyncPeriodicWork {
 
 
     private static class DirectoryFilter implements FileFilter, Serializable {
-        public boolean accept(File f) {
+        @Override
+		public boolean accept(File f) {
             return f.isDirectory();
         }
         private static final long serialVersionUID = 1L;

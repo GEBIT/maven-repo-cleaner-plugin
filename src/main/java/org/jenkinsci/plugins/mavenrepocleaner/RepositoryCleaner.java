@@ -8,17 +8,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import hudson.os.PosixAPI;
 import org.apache.commons.io.DirectoryWalker;
-import org.apache.maven.artifact.repository.metadata.Metadata;
-import org.apache.maven.artifact.repository.metadata.Snapshot;
 import org.apache.maven.index.artifact.Gav;
 import org.apache.maven.index.artifact.M2GavCalculator;
-import org.jruby.ext.posix.FileStat;
-import org.kohsuke.args4j.CmdLineException;
-import org.kohsuke.args4j.CmdLineParser;
 
-import javax.swing.filechooser.FileNameExtensionFilter;
+import hudson.os.PosixAPI;
+import jnr.posix.FileStat;
 
 /**
  * Hello world!
@@ -41,7 +36,8 @@ public class RepositoryCleaner extends DirectoryWalker
         return result;
     }
 
-    protected final void handleDirectoryStart(File directory, int depth, Collection results) throws IOException {
+    @Override
+	protected final void handleDirectoryStart(File directory, int depth, Collection results) throws IOException {
 
         for (File file : directory.listFiles()) {
             if (file.isDirectory()) continue;
@@ -66,7 +62,7 @@ public class RepositoryCleaner extends DirectoryWalker
     }
 
     private void olderThan(File file, Gav artifact, Collection results) {
-        FileStat fs = PosixAPI.get().lstat(file.getPath());
+        FileStat fs = PosixAPI.jnr().lstat(file.getPath());
         long lastAccessTime = fs.atime();
         if (lastAccessTime < olderThan) {
             // This artifact hasn't been accessed during build
@@ -89,7 +85,8 @@ public class RepositoryCleaner extends DirectoryWalker
             Arrays.asList(new String[]
                     {"_maven.repositories", "maven-metadata.xml", "maven-metadata.xml.md5", "maven-metadata.xml.sha1"});
 
-        public boolean accept(File file) {
+        @Override
+		public boolean accept(File file) {
             return !metadata.contains(file.getName());
         }
     }
