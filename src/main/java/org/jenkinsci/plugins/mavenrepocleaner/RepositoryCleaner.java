@@ -39,6 +39,10 @@ public class RepositoryCleaner extends DirectoryWalker
     @Override
 	protected final void handleDirectoryStart(File directory, int depth, Collection results) throws IOException {
 
+    	if (directory == null) {
+    		return;
+    	}
+
         for (File file : directory.listFiles()) {
             if (file.isDirectory()) continue;
             String fileName = file.getName();
@@ -58,7 +62,6 @@ public class RepositoryCleaner extends DirectoryWalker
             }
             directory.delete();
         }
-
     }
 
     private void olderThan(File file, Gav artifact, Collection results) {
