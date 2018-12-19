@@ -7,7 +7,7 @@
   </parent>
 
   <artifactId>maven-repo-cleaner</artifactId>
-  <version>1.2-gebit2</version>
+  <version>1.2-gebit3</version>
   <packaging>hpi</packaging>
   <name>Maven Repository Scheduled Cleanup Plugin</name>
   <url>https://wiki.jenkins-ci.org/display/JENKINS/Maven+Repo+Cleaner+Plugin</url>
@@ -24,7 +24,7 @@
    <url>https://github.com/jenkinsci/maven-repo-cleaner-plugin</url>
     <tag>HEAD</tag>
   </scm>
-  
+
   <developers>
     <developer>
       <id>abayer</id>
@@ -77,7 +77,7 @@
       </plugins>
     </pluginManagement>
   </build>
-  
+
   <distributionManagement>
     <!--  fix maven3 warning for id local -->
     <snapshotRepository>
