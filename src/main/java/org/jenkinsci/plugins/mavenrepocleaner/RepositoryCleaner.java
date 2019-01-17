@@ -119,12 +119,19 @@ public class RepositoryCleaner extends DirectoryWalker
     private static class MetadataFileFilter implements FileFilter {
 
         private final List<String> metadata =
-            Arrays.asList(new String[]
-                    {"_maven.repositories", "maven-metadata.xml", "maven-metadata.xml.md5", "maven-metadata.xml.sha1"});
+            Arrays.asList(new String[] {
+            		"_maven.repositories",
+            		"_remote.repositories",
+            		"resolver-status.properties",
+    		});
 
         @Override
 		public boolean accept(File file) {
-            return !metadata.contains(file.getName());
+        	String name = file.getName();
+        	if (name.startsWith("maven-metadata") && name.contains(".xml")) {
+        		return false;
+        	}
+            return !metadata.contains(name);
         }
     }
 }
