@@ -50,9 +50,6 @@ public class MavenRepoCleanerPostBuildTask extends Recorder {
     @DataBoundSetter
     public void setChangingArtifactPatterns(String changingArtifactPatterns) {
 		this.changingArtifactPatterns = changingArtifactPatterns;
-		if (this.changingArtifactPatterns == null) {
-			this.changingArtifactPatterns = "";
-		}
     }
 
     @DataBoundSetter
@@ -65,7 +62,10 @@ public class MavenRepoCleanerPostBuildTask extends Recorder {
 	}
 
 	public String getChangingArtifactPatterns() {
-		return changingArtifactPatterns;
+		if (changingArtifactPatterns != null) {
+			return changingArtifactPatterns;
+		}
+		return "";
 	}
 
 	/**
@@ -77,21 +77,24 @@ public class MavenRepoCleanerPostBuildTask extends Recorder {
 
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+    	try {
+    		final long started = build.getTimeInMillis();
+    		AbstractProject<?,?> project = build.getProject();
+    		MavenRepoCleanerProperty mrcp = project.getProperty(MavenRepoCleanerProperty.class);
+    		long gracePeriodInMillis = gracePeriodInDays * 24 * 60 * 60 * 1000;
+    		long keepTimeStamp = Math.max(0, started - gracePeriodInMillis);
 
-        final long started = build.getTimeInMillis();
-        AbstractProject<?,?> project = build.getProject();
-        MavenRepoCleanerProperty mrcp = project.getProperty(MavenRepoCleanerProperty.class);
-        long gracePeriodInMillis = gracePeriodInDays * 24 * 60 * 60 * 1000;
-        long keepTimeStamp = Math.max(0, started - gracePeriodInMillis);
-
-        FileCallableImpl cleanup = new FileCallableImpl(keepTimeStamp);
-        Pattern[] patterns = compile(tokenize(getChangingArtifactPatterns()));
-        cleanup.setChangingPatterns(patterns);
-        cleanup.setChangingArtifactMaxAgeInHours(getChangingArtifactMaxAgeInHours());
-        Collection<String> removed = build.getWorkspace().child(".repository").act(cleanup);
-        if (removed.size() > 0) {
-            listener.getLogger().println( removed.size() + " unused artifacts removed from private maven repository" );
-        }
+    		FileCallableImpl cleanup = new FileCallableImpl(keepTimeStamp);
+    		Pattern[] patterns = compile(tokenize(getChangingArtifactPatterns()));
+    		cleanup.setChangingPatterns(patterns);
+    		cleanup.setChangingArtifactMaxAgeInHours(getChangingArtifactMaxAgeInHours());
+    		Collection<String> removed = build.getWorkspace().child(".repository").act(cleanup);
+    		if (removed.size() > 0) {
+    			listener.getLogger().println( removed.size() + " unused artifacts removed from private maven repository" );
+    		}
+    	} catch (Exception ex) {
+    		ex.printStackTrace(listener.error("Error during Maven repository cleanup"));
+    	}
         return true;
     }
 
