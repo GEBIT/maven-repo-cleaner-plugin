@@ -43,13 +43,16 @@ public class MavenRepoCleanerPostBuildTask extends Recorder {
     @DataBoundConstructor
 	public MavenRepoCleanerPostBuildTask(int gracePeriodInDays, String changingArtifactPatterns, int changingArtifactMaxAgeInHours) {
     	this.gracePeriodInDays = gracePeriodInDays;
-    	this.changingArtifactPatterns = changingArtifactPatterns;
-    	this.changingArtifactMaxAgeInHours = changingArtifactMaxAgeInHours;
+    	setChangingArtifactPatterns(changingArtifactPatterns);
+    	setChangingArtifactMaxAgeInHours(changingArtifactMaxAgeInHours);
     }
 
     @DataBoundSetter
     public void setChangingArtifactPatterns(String changingArtifactPatterns) {
-    	this.changingArtifactPatterns = changingArtifactPatterns;
+		this.changingArtifactPatterns = changingArtifactPatterns;
+		if (this.changingArtifactPatterns == null) {
+			this.changingArtifactPatterns = "";
+		}
     }
 
     @DataBoundSetter
