@@ -53,7 +53,12 @@ public class RepositoryCleaner extends DirectoryWalker
     		return;
     	}
 
-        for (File file : directory.listFiles()) {
+    	File[] files = directory.listFiles();
+    	if (files == null) {
+    		throw new IOException("Unable to list directory " + directory.getAbsolutePath() + " (returned null)");
+    	}
+
+        for (File file : files) {
             if (file.isDirectory()) continue;
             String fileName = file.getName();
 
