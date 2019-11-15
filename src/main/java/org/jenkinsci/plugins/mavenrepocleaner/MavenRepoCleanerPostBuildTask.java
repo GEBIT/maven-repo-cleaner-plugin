@@ -28,7 +28,7 @@ import jenkins.MasterToSlaveFileCallable;
 import net.sf.json.JSONObject;
 
 /**
- * @author: <a hef="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
+ * @author: <a href="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
  */
 public class MavenRepoCleanerPostBuildTask extends Recorder {
     private static final int DEFAULT_GRACE_PERIOD = 7;
@@ -54,7 +54,7 @@ public class MavenRepoCleanerPostBuildTask extends Recorder {
 
     @DataBoundSetter
 	public void setChangingArtifactMaxAgeInHours(int changingArtifactMaxAgeInHours) {
-		changingArtifactMaxAgeInHours = changingArtifactMaxAgeInHours;
+		this.changingArtifactMaxAgeInHours = changingArtifactMaxAgeInHours;
 	}
 
 	public int getChangingArtifactMaxAgeInHours() {
@@ -81,7 +81,7 @@ public class MavenRepoCleanerPostBuildTask extends Recorder {
     		final long started = build.getTimeInMillis();
     		AbstractProject<?,?> project = build.getProject();
     		MavenRepoCleanerProperty mrcp = project.getProperty(MavenRepoCleanerProperty.class);
-    		long gracePeriodInMillis = gracePeriodInDays * 24 * 60 * 60 * 1000;
+    		long gracePeriodInMillis = gracePeriodInDays * 24 * 60 * 60 * 1000L;
     		long keepTimeStamp = Math.max(0, started - gracePeriodInMillis);
 
     		FileCallableImpl cleanup = new FileCallableImpl(keepTimeStamp);

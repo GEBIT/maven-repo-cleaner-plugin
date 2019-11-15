@@ -4,7 +4,7 @@
       <f:textbox default="7"/>
     </f:entry>
     <f:entry field="changingArtifactPatterns" title="${%Changing Artifact Version Patterns}">
-      <f:expandableTextbox field="changingArtifactPatterns" value=".+-SNAPSHOT"/>
+      <f:expandableTextbox value="${instance.changingArtifactPatterns?:'.+-SNAPSHOT'}"/>
     </f:entry>
     <f:entry field="changingArtifactMaxAgeInHours" title="${%Max Age of Changing Artifacts}">
       <f:number default="-1"/>

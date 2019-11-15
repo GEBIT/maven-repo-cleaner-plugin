@@ -35,7 +35,7 @@ public class RepositoryCleaner extends DirectoryWalker
     public RepositoryCleaner(long timestamp, Pattern[] changingArtifactPatterns, int changingArtifactMaxAgeInHours) {
         this.olderThan = timestamp / 1000;
         this.changingArtifactPatterns = changingArtifactPatterns != null ? changingArtifactPatterns : new Pattern[0];
-        this.changingArtifactMaxAgeInS = changingArtifactMaxAgeInHours * 60 * 60;
+        this.changingArtifactMaxAgeInS = changingArtifactMaxAgeInHours * 60 * 60L;
     }
 
 	public Collection<String> clean(File repository) throws IOException {
