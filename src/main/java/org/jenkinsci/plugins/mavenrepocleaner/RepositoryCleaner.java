@@ -20,73 +20,81 @@ import jnr.posix.FileStat;
 
 /**
  * Hello world!
- *
  */
-public class RepositoryCleaner extends DirectoryWalker
-{
-    private M2GavCalculator gavCalculator = new M2GavCalculator();
-    private long olderThan;
-    private String root;
+public class RepositoryCleaner extends DirectoryWalker {
+
+	private M2GavCalculator gavCalculator = new M2GavCalculator();
+
+	private long olderThan;
+
+	private String root;
+
 	private Pattern[] changingArtifactPatterns;
+
 	private long changingArtifactMaxAgeInS;
+
 	private Date today;
+
 	private long startTimeInS;
 
-    public RepositoryCleaner(long timestamp, Pattern[] changingArtifactPatterns, int changingArtifactMaxAgeInHours) {
-        this.olderThan = timestamp / 1000;
-        this.changingArtifactPatterns = changingArtifactPatterns != null ? changingArtifactPatterns : new Pattern[0];
-        this.changingArtifactMaxAgeInS = changingArtifactMaxAgeInHours * 60 * 60L;
-    }
+	public RepositoryCleaner(long timestamp, Pattern[] changingArtifactPatterns, int changingArtifactMaxAgeInHours) {
+		this.olderThan = timestamp / 1000;
+		this.changingArtifactPatterns = changingArtifactPatterns != null ? changingArtifactPatterns : new Pattern[0];
+		this.changingArtifactMaxAgeInS = changingArtifactMaxAgeInHours * 60 * 60L;
+	}
 
 	public Collection<String> clean(File repository) throws IOException {
-        this.root = repository.getAbsolutePath();
-        this.startTimeInS = System.currentTimeMillis() / 1000;
-        Collection<String> result = new ArrayList<String>();
-        walk(repository, result);
-        return result;
-    }
+		this.root = repository.getAbsolutePath();
+		this.startTimeInS = System.currentTimeMillis() / 1000;
+		Collection<String> result = new ArrayList<String>();
+		walk(repository, result);
+		return result;
+	}
 
-    @Override
+	@Override
 	protected final void handleDirectoryStart(File directory, int depth, Collection results) throws IOException {
 
-    	if (directory == null) {
-    		return;
-    	}
+		if (directory == null || !directory.exists()) {
+			return;
+		}
 
-    	File[] files = directory.listFiles();
-    	if (files == null) {
-    		throw new IOException("Unable to list directory " + directory.getAbsolutePath() + " (returned null)");
-    	}
+		File[] files = directory.listFiles();
+		if (files == null) {
+			throw new IOException("Unable to list directory " + directory.getAbsolutePath() + " (returned null)");
+		}
 
-        for (File file : files) {
-            if (file.isDirectory()) continue;
-            String fileName = file.getName();
+		for (File file : files) {
+			if (file.isDirectory())
+				continue;
+			String fileName = file.getName();
 
-            if (fileName.endsWith(".sha1") || fileName.endsWith(".md5")) continue;
+			if (fileName.endsWith(".sha1") || fileName.endsWith(".md5"))
+				continue;
 
-            String location = file.getAbsolutePath().substring(root.length());
-            Gav gav = gavCalculator.pathToGav(location);
-            if (gav == null) continue; // Not an artifact
+			String location = file.getAbsolutePath().substring(root.length());
+			Gav gav = gavCalculator.pathToGav(location);
+			if (gav == null)
+				continue; // Not an artifact
 
-            olderThan(file, gav, results);
-        }
+			olderThan(file, gav, results);
+		}
 
-        if ( directory.listFiles(new MetadataFileFilter()).length == 0 ) {
-            for (File file : directory.listFiles()) {
-                file.delete();
-            }
-            directory.delete();
-        }
-    }
+		if (directory.listFiles(new MetadataFileFilter()).length == 0) {
+			for (File file : directory.listFiles()) {
+				file.delete();
+			}
+			directory.delete();
+		}
+	}
 
-    private void olderThan(File file, Gav artifact, Collection results) {
-        FileStat fs = PosixAPI.jnr().lstat(file.getPath());
-        long lastAccessTime = fs.atime();
-        if (lastAccessTime < olderThan || expiredChangingArtifact(artifact, fs)) {
-            // This artifact hasn't been accessed during build or is expired
-            clean(file, artifact, results);
-        }
-    }
+	private void olderThan(File file, Gav artifact, Collection results) {
+		FileStat fs = PosixAPI.jnr().lstat(file.getPath());
+		long lastAccessTime = fs.atime();
+		if (lastAccessTime < olderThan || expiredChangingArtifact(artifact, fs)) {
+			// This artifact hasn't been accessed during build or is expired
+			clean(file, artifact, results);
+		}
+	}
 
 	private boolean expiredChangingArtifact(Gav artifact, FileStat fs) {
 		if (changingArtifactMaxAgeInS < 0) {
@@ -95,7 +103,7 @@ public class RepositoryCleaner extends DirectoryWalker
 
 		if (isChangingArtifactVersion(artifact.getVersion())) {
 			long mtime = fs.mtime();
-			if (mtime + changingArtifactMaxAgeInS  < startTimeInS) {
+			if (mtime + changingArtifactMaxAgeInS < startTimeInS) {
 				return true;
 			}
 		}
@@ -113,31 +121,27 @@ public class RepositoryCleaner extends DirectoryWalker
 	}
 
 	private void clean(File file, Gav artifact, Collection results) {
-        File directory = file.getParentFile();
-        String fineName = gavCalculator.calculateArtifactName(artifact);
-        new File(directory, fineName + ".md5").delete();
-        new File(directory, fineName + ".sha1").delete();
-        file.delete();
-        results.add(gavCalculator.gavToPath(artifact));
-    }
+		File directory = file.getParentFile();
+		String fineName = gavCalculator.calculateArtifactName(artifact);
+		new File(directory, fineName + ".md5").delete();
+		new File(directory, fineName + ".sha1").delete();
+		file.delete();
+		results.add(gavCalculator.gavToPath(artifact));
+	}
 
-    private static class MetadataFileFilter implements FileFilter {
+	private static class MetadataFileFilter implements FileFilter {
 
-        private final List<String> metadata =
-            Arrays.asList(new String[] {
-            		"_maven.repositories",
-            		"_remote.repositories",
-            		"resolver-status.properties",
-    		});
+		private final List<String> metadata = Arrays.asList(new String[] {
+				"_maven.repositories", "_remote.repositories", "resolver-status.properties",
+		});
 
-        @Override
+		@Override
 		public boolean accept(File file) {
-        	String name = file.getName();
-        	if (name.startsWith("maven-metadata") && name.contains(".xml")) {
-        		return false;
-        	}
-            return !metadata.contains(name);
-        }
-    }
+			String name = file.getName();
+			if (name.startsWith("maven-metadata") && name.contains(".xml")) {
+				return false;
+			}
+			return !metadata.contains(name);
+		}
+	}
 }
-
