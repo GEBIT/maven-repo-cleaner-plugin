@@ -33,8 +33,6 @@ public class RepositoryCleaner extends DirectoryWalker {
 
 	private long changingArtifactMaxAgeInS;
 
-	private Date today;
-
 	private long startTimeInS;
 
 	public RepositoryCleaner(long timestamp, Pattern[] changingArtifactPatterns, int changingArtifactMaxAgeInHours) {
@@ -86,23 +84,24 @@ public class RepositoryCleaner extends DirectoryWalker {
 		}
 	}
 
-	private void olderThan(File file, Gav artifact, Collection results) {
+	private void olderThan(File file, Gav artifact, Collection results) throws IOException {
 		BasicFileAttributes attrs = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
 		FileTime time = attrs.lastAccessTime();
 		long lastAccessTime = time.toMillis();
-		if (lastAccessTime < olderThan || expiredChangingArtifact(artifact, fs)) {
+		if (lastAccessTime < olderThan || expiredChangingArtifact(artifact, attrs)) {
 			// This artifact hasn't been accessed during build or is expired
 			clean(file, artifact, results);
 		}
 	}
 
-	private boolean expiredChangingArtifact(Gav artifact, FileStat fs) {
+	private boolean expiredChangingArtifact(Gav artifact, BasicFileAttributes attrs) {
 		if (changingArtifactMaxAgeInS < 0) {
 			return false;
 		}
 
 		if (isChangingArtifactVersion(artifact.getVersion())) {
-			long mtime = fs.mtime();
+			FileTime time = attrs.lastModifiedTime();
+			long mtime = time.toMillis();
 			if (mtime + changingArtifactMaxAgeInS < startTimeInS) {
 				return true;
 			}
