@@ -1,8 +1,15 @@
 package org.jenkinsci.plugins.mavenrepocleaner;
 
+import org.apache.commons.io.DirectoryWalker;
+import org.apache.maven.index.artifact.Gav;
+import org.apache.maven.index.artifact.M2GavCalculator;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -10,13 +17,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.io.DirectoryWalker;
-import org.apache.maven.index.artifact.Gav;
-import org.apache.maven.index.artifact.M2GavCalculator;
-
-import hudson.os.PosixAPI;
-import jnr.posix.FileStat;
 
 /**
  * Hello world!
@@ -53,7 +53,6 @@ public class RepositoryCleaner extends DirectoryWalker {
 
 	@Override
 	protected final void handleDirectoryStart(File directory, int depth, Collection results) throws IOException {
-
 		if (directory == null || !directory.exists()) {
 			return;
 		}
@@ -88,8 +87,9 @@ public class RepositoryCleaner extends DirectoryWalker {
 	}
 
 	private void olderThan(File file, Gav artifact, Collection results) {
-		FileStat fs = PosixAPI.jnr().lstat(file.getPath());
-		long lastAccessTime = fs.atime();
+		BasicFileAttributes attrs = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+		FileTime time = attrs.lastAccessTime();
+		long lastAccessTime = time.toMillis();
 		if (lastAccessTime < olderThan || expiredChangingArtifact(artifact, fs)) {
 			// This artifact hasn't been accessed during build or is expired
 			clean(file, artifact, results);
