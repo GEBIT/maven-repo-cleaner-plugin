@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -87,7 +88,7 @@ public class RepositoryCleaner extends DirectoryWalker {
 	private void olderThan(File file, Gav artifact, Collection results) throws IOException {
 		BasicFileAttributes attrs = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
 		FileTime time = attrs.lastAccessTime();
-		long lastAccessTime = time.toMillis();
+		long lastAccessTime = time.to(TimeUnit.SECONDS);
 		if (lastAccessTime < olderThan || expiredChangingArtifact(artifact, attrs)) {
 			// This artifact hasn't been accessed during build or is expired
 			clean(file, artifact, results);
@@ -101,7 +102,7 @@ public class RepositoryCleaner extends DirectoryWalker {
 
 		if (isChangingArtifactVersion(artifact.getVersion())) {
 			FileTime time = attrs.lastModifiedTime();
-			long mtime = time.toMillis();
+			long mtime = time.to(TimeUnit.SECONDS);
 			if (mtime + changingArtifactMaxAgeInS < startTimeInS) {
 				return true;
 			}
