@@ -30,6 +30,12 @@ import hudson.util.FormValidation;
 import jenkins.MasterToSlaveFileCallable;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONObject;
+import org.jenkinsci.remoting.RoleChecker;
+import org.kohsuke.stapler.DataBoundConstructor;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
 
 /**
  * @author: <a href="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
@@ -187,6 +193,11 @@ public class MavenRepoCleanerPostBuildTask extends Recorder implements SimpleBui
 		@Override
 		public Collection<String> invoke(File repository, VirtualChannel channel) throws IOException, InterruptedException {
             return new RepositoryCleaner(keepTimestamp, changingArtifactPatterns, changingArtifactMaxAgeInHours).clean(repository);
+        }
+
+        @Override
+        public void checkRoles(RoleChecker checker) throws SecurityException {
+            // no much to control here
         }
     }
 
