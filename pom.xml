@@ -14,6 +14,24 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    
+    <!-- Version of the project (same as in version tag). It will be updated automatically by GEBIT flow. -->
+    <version.maven-repo-cleaner>1.2-gebit12</version.maven-repo-cleaner>
+    <version.property>version.maven-repo-cleaner</version.property>
+    
+    <project.build-name>maven-repo-cleaner</project.build-name>
+		<project.jira>DINF</project.jira>
+    
+    <!-- Version of gebit-build to be used -->
+    <version.build>3.4.1-I377</version.build>
+    <version.gebit-build-extension>1.2.2</version.gebit-build-extension>
+    <version.tiles>2.8-gebit37</version.tiles>
+    <version.gitflow-maven-plugin>2.4.6-I152</version.gitflow-maven-plugin>
+    
+    <tiles.applyBefore>org.jenkins-ci.plugins:maven-repo-cleaner</tiles.applyBefore>
+    <tiles.mergeTarget>${tiles.applyBefore}</tiles.mergeTarget>
+    
+    <flow.skipReleaseBranchMerge>true</flow.skipReleaseBranchMerge>
   </properties>
 
 
@@ -81,6 +99,29 @@
         </plugin>
       </plugins>
     </pluginManagement>
+    <plugins>
+    	<plugin>
+        <groupId>io.repaint.maven</groupId>
+        <artifactId>tiles-maven-plugin</artifactId>
+        <version>${version.tiles}</version>
+        <extensions>true</extensions>
+        <configuration>
+        	<applyBefore>${tiles.applyBefore}</applyBefore>
+          <mergeTarget>${tiles.mergeTarget}</mergeTarget>
+          	<tiles combine.children="append">
+            	<tile>de.gebit.build.tile:build:${version.build}</tile>
+              <!-- hier can be added other tiles to be used -->
+            </tiles>
+        </configuration>
+   		</plugin>
+    </plugins>
+    <extensions>
+	    <extension>
+	      <groupId>de.gebit.build.maven</groupId>
+	      <artifactId>gebit-build-extension</artifactId>
+	      <version>${version.gebit-build-extension}</version>
+	    </extension>
+   	</extensions>
   </build>
 
   <distributionManagement>
@@ -97,6 +138,22 @@
     <repository>
       <id>repo.jenkins-ci.org</id>
       <url>https://repo.jenkins-ci.org/public/</url>
+      <releases>
+         <enabled>false</enabled>
+      </releases>
+      <snapshots>
+      	<enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>incrementals</id>
+      <url>https://repo.jenkins-ci.org/incrementals/</url>
+      <releases>
+      	<enabled>false</enabled>
+      </releases>
+      <snapshots>
+      	<enabled>false</enabled>
+      </snapshots>
     </repository>
   </repositories>
 
@@ -104,7 +161,23 @@
     <pluginRepository>
       <id>repo.jenkins-ci.org</id>
       <url>https://repo.jenkins-ci.org/public/</url>
+      <releases>
+         <enabled>false</enabled>
+      </releases>
+      <snapshots>
+      	<enabled>false</enabled>
+      </snapshots>
     </pluginRepository>
+    <pluginRepository>
+      <id>incrementals</id>
+      <url>https://repo.jenkins-ci.org/incrementals/</url>
+      <releases>
+      	<enabled>false</enabled>
+      </releases>
+      <snapshots>
+      	<enabled>false</enabled>
+      </snapshots>
+		</pluginRepository>
   </pluginRepositories>
 
 </project>
