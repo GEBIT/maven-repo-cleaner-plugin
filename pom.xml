@@ -121,14 +121,16 @@
     </dependency>
   </dependencies>
 
-  <distributionManagement>
-    <!--  fix maven3 warning for id local -->
+	<!-- gebit: we cannot override the distributionManagement from our build tile
+			 see: https://jira.gebit.de/browse/GBLD-1099 -->
+  <!-- <distributionManagement>
+     fix maven3 warning for id local
     <snapshotRepository>
-      <!-- prevent accidental deployment of SNAPSHOTS to repository -->
+      prevent accidental deployment of SNAPSHOTS to repository
       <id>local.repository</id>
       <url>file:.</url>
     </snapshotRepository>
-  </distributionManagement>
+  </distributionManagement> -->
 
   <!-- get every artifact through maven.glassfish.org, which proxies all the artifacts that we need -->
   <repositories>
