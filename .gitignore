@@ -6,3 +6,4 @@ build
 *.iml
 work
 .factorypath
+eclipse-target/
