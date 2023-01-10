@@ -27,6 +27,7 @@
     <version.maven-repo-cleaner>${revision}</version.maven-repo-cleaner>
     <version.gebit-forked>1.0.0-I1</version.gebit-forked>
     <version.build>3.5.0</version.build>
+    <version.gebit-build-extension>1.2.2</version.gebit-build-extension>
     <version.tiles>2.8-gebit37</version.tiles>
     <tiles.applyBefore>${project.groupId}:${project.artifactId}</tiles.applyBefore>
     <tiles.mergeTarget>${tiles.applyBefore}</tiles.mergeTarget>
@@ -147,6 +148,13 @@
 	      </configuration>
 	 		</plugin>
 		</plugins>
+		<extensions>
+			<extension>
+				<groupId>de.gebit.build.maven</groupId>
+				<artifactId>gebit-build-extension</artifactId>
+				<version>${version.gebit-build-extension}</version>
+			</extension>
+		</extensions>
 	</build>
 
 </project>
