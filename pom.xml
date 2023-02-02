@@ -25,9 +25,9 @@
     <argLine />
     
     <version.maven-repo-cleaner>${revision}</version.maven-repo-cleaner>
-    <version.gebit-forked>1.0.0-I1</version.gebit-forked>
-    <version.build>3.5.0</version.build>
+    <version.build>3.5.2</version.build>
     <version.gebit-build-extension>1.2.2</version.gebit-build-extension>
+    <version.gebit-forked>1.0.0-I3</version.gebit-forked>
     <version.tiles>2.8-gebit37</version.tiles>
     <tiles.applyBefore>${project.groupId}:${project.artifactId}</tiles.applyBefore>
     <tiles.mergeTarget>${tiles.applyBefore}</tiles.mergeTarget>
