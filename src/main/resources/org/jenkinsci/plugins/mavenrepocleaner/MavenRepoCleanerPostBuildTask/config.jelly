@@ -1,4 +1,6 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
-
+    <f:entry field="gracePeriodInDays" title="${%Grace Period in Days}">
+      <f:textbox default="7"/>
+    </f:entry>
 </j:jelly>
