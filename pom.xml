@@ -19,6 +19,14 @@
     <gitHubRepo>jenkinsci/${project.artifactId}</gitHubRepo>
     <jenkins.version>2.361.4</jenkins.version>
 
+    <!-- GEBIT: versions to be used for gebit-build support -->
+    <java.version>21</java.version>
+    <version.tiles>2.8-gebit42</version.tiles>
+    <version.build>3.17.0</version.build>
+    <version.gebit-build-extension>2.1.0</version.gebit-build-extension>
+    <version.gebit-forked>1.1.0</version.gebit-forked>
+    <!-- GEBIT: end -->
+
     <!--TODO: change to true after the code cleanup-->
     <spotbugs.failOnError>false</spotbugs.failOnError>
     <!-- well the parent pom could defined an empty one instead of causing failure!! -->
@@ -114,5 +122,32 @@
       <url>https://repo.jenkins-ci.org/public/</url>
     </pluginRepository>
   </pluginRepositories>
+
+  <build>
+    <plugins>
+      <!-- GEBIT: Tiles -->
+      <plugin>
+        <groupId>io.repaint.maven</groupId>
+        <artifactId>tiles-maven-plugin</artifactId>
+        <version>${version.tiles}</version>
+        <extensions>true</extensions>
+        <configuration>
+          <tiles>
+            <tile>de.gebit.build.forked.tile:jenkins-plugin:${version.gebit-forked}</tile>
+          </tiles>
+        </configuration>
+      </plugin>
+      <!-- GEBIT: end -->
+    </plugins>
+    <!-- GEBIT: Extensions -->
+    <extensions>
+      <extension>
+        <groupId>de.gebit.build.maven</groupId>
+        <artifactId>gebit-build-extension</artifactId>
+        <version>${version.gebit-build-extension}</version>
+      </extension>
+    </extensions>
+    <!-- GEBIT: end -->
+  </build>
 
 </project>
