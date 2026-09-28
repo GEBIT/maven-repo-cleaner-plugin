@@ -3,19 +3,22 @@ package org.jenkinsci.plugins.mavenrepocleaner;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.Util;
 import hudson.maven.AbstractMavenProject;
 import hudson.maven.MavenModuleSet;
 import hudson.maven.MavenModuleSetBuild;
-import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.BuildListener;
 import hudson.model.FreeStyleProject;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.remoting.VirtualChannel;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
+import jenkins.tasks.SimpleBuildStep;
+import org.jenkinsci.Symbol;
 import org.jenkinsci.remoting.RoleChecker;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -33,20 +36,22 @@ import java.util.regex.PatternSyntaxException;
 /**
  * @author <a href="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
  */
-public class MavenRepoCleanerPostBuildTask extends Recorder {
-    private static final int DEFAULT_GRACE_PERIOD = 7;
-    private static final String DEFAULT_CHANGING_ARTIFACTS_PATTERN = ".+-SNAPSHOT";
-    private static final int DEFAULT_CHANGING_ARTIFACTS_MAX_AGE_IN_HOURS = -1;
+public class MavenRepoCleanerPostBuildTask extends Recorder implements SimpleBuildStep {
 
     private int gracePeriodInDays;
     private String changingArtifactPatterns;
     private int changingArtifactMaxAgeInHours;
 
     @DataBoundConstructor
-    public MavenRepoCleanerPostBuildTask(int gracePeriodInDays, String changingArtifactPatterns, int changingArtifactMaxAgeInHours) {
+    public MavenRepoCleanerPostBuildTask() {
+        setGracePeriodInDays(DescriptorImpl.DEFAULT_GRACE_PERIOD);
+        setChangingArtifactPatterns(DescriptorImpl.DEFAULT_CHANGING_ARTIFACTS_PATTERN);
+        setChangingArtifactMaxAgeInHours(DescriptorImpl.DEFAULT_CHANGING_ARTIFACTS_MAX_AGE_IN_HOURS);
+    }
+
+    @DataBoundSetter
+    public void setGracePeriodInDays(int gracePeriodInDays) {
         this.gracePeriodInDays = gracePeriodInDays;
-        setChangingArtifactPatterns(changingArtifactPatterns);
-        setChangingArtifactMaxAgeInHours(changingArtifactMaxAgeInHours);
     }
 
     @DataBoundSetter
@@ -59,26 +64,21 @@ public class MavenRepoCleanerPostBuildTask extends Recorder {
         this.changingArtifactMaxAgeInHours = changingArtifactMaxAgeInHours;
     }
 
-    public int getChangingArtifactMaxAgeInHours() {
-        return changingArtifactMaxAgeInHours;
-    }
-
-    public String getChangingArtifactPatterns() {
-        if (changingArtifactPatterns != null) {
-            return changingArtifactPatterns;
-        }
-        return "";
-    }
-
-    /**
-     * @return the gracePeriodInDays
-     */
     public int getGracePeriodInDays() {
         return gracePeriodInDays;
     }
 
+    public String getChangingArtifactPatterns() {
+        return Util.fixNull(changingArtifactPatterns);
+    }
+
+    public int getChangingArtifactMaxAgeInHours() {
+        return changingArtifactMaxAgeInHours;
+    }
+
     @Override
-    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+    public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener)
+            throws InterruptedException, IOException {
         try {
             final long started = build.getTimeInMillis();
             long gracePeriodInMillis = gracePeriodInDays * 24 * 60 * 60 * 1000L;
@@ -88,14 +88,13 @@ public class MavenRepoCleanerPostBuildTask extends Recorder {
             Pattern[] patterns = compile(tokenize(getChangingArtifactPatterns()));
             cleanup.setChangingPatterns(patterns);
             cleanup.setChangingArtifactMaxAgeInHours(getChangingArtifactMaxAgeInHours());
-            Collection<String> removed = build.getWorkspace().child(".repository").act(cleanup);
+            Collection<String> removed = workspace.child(".repository").act(cleanup);
             if (removed.size() > 0) {
-                listener.getLogger().println( removed.size() + " unused artifacts removed from private maven repository" );
+                listener.getLogger().println(removed.size() + " unused artifacts removed from private maven repository");
             }
         } catch (Exception ex) {
             ex.printStackTrace(listener.error("Error during Maven repository cleanup"));
         }
-        return true;
     }
 
     private Pattern[] compile(String[] changingArtifactPatterns) throws PatternSyntaxException {
@@ -107,12 +106,18 @@ public class MavenRepoCleanerPostBuildTask extends Recorder {
         return result;
     }
 
+    @Override
     public BuildStepMonitor getRequiredMonitorService() {
         return BuildStepMonitor.NONE;
     }
 
     @Extension
+    @Symbol("cleanMavenRepo")
     public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
+
+        public static final int DEFAULT_GRACE_PERIOD = 7;
+        public static final String DEFAULT_CHANGING_ARTIFACTS_PATTERN = ".+-SNAPSHOT";
+        public static final int DEFAULT_CHANGING_ARTIFACTS_MAX_AGE_IN_HOURS = -1;
 
         public DescriptorImpl() {
             super(MavenRepoCleanerPostBuildTask.class);
@@ -145,22 +150,6 @@ public class MavenRepoCleanerPostBuildTask extends Recorder {
                 }
             }
             return FormValidation.ok();
-        }
-
-        @Override
-        public Publisher newInstance(StaplerRequest aReq, JSONObject formData)
-                throws hudson.model.Descriptor.FormException {
-
-            if (!formData.has("gracePeriodInDays")) {
-                formData.put("gracePeriodInDays", DEFAULT_GRACE_PERIOD);
-            }
-            if (!formData.has("changingArtifactPatterns")) {
-                formData.put("changingArtifactPatterns", DEFAULT_CHANGING_ARTIFACTS_PATTERN);
-            }
-            if (!formData.has("changingArtifactMaxAgeInHours")) {
-                formData.put("changingArtifactMaxAgeInHours", DEFAULT_CHANGING_ARTIFACTS_MAX_AGE_IN_HOURS);
-            }
-            return super.newInstance(aReq, formData);
         }
     }
     private static class FileCallableImpl implements FilePath.FileCallable<Collection<String>> {
