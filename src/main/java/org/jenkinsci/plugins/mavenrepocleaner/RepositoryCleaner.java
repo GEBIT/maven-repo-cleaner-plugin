@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import java.util.concurrent.TimeUnit
 ;
@@ -26,13 +28,19 @@ public class RepositoryCleaner extends DirectoryWalker
     private M2GavCalculator gavCalculator = new M2GavCalculator();
     private long olderThan;
     private String root;
+    private Pattern[] changingArtifactPatterns;
+    private long changingArtifactMaxAgeInS;
+    private long startTimeInS;
 
-    public RepositoryCleaner(long timestamp) {
+    public RepositoryCleaner(long timestamp, Pattern[] changingArtifactPatterns, int changingArtifactMaxAgeInHours) {
         this.olderThan = timestamp / 1000;
+        this.changingArtifactPatterns = changingArtifactPatterns != null ? changingArtifactPatterns : new Pattern[0];
+        this.changingArtifactMaxAgeInS = changingArtifactMaxAgeInHours * 60 * 60L;
     }
 
     public Collection<String> clean(File repository) throws IOException {
         this.root = repository.getAbsolutePath();
+        this.startTimeInS = System.currentTimeMillis() / 1000;
         Collection<String> result = new ArrayList<String>();
         walk(repository, result);
         return result;
@@ -66,10 +74,35 @@ public class RepositoryCleaner extends DirectoryWalker
         BasicFileAttributes attrs = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
         FileTime time = attrs.lastAccessTime();
         long lastAccessTime = time.to(TimeUnit.SECONDS);
-        if (lastAccessTime < olderThan) {
-            // This artifact hasn't been accessed during build
+        if (lastAccessTime < olderThan || expiredChangingArtifact(artifact, attrs)) {
+            // This artifact hasn't been accessed during build or is expired
             clean(file, artifact, results);
         }
+    }
+
+    private boolean expiredChangingArtifact(Gav artifact, BasicFileAttributes attrs) {
+        if (changingArtifactMaxAgeInS < 0) {
+            return false;
+        }
+
+        if (isChangingArtifactVersion(artifact.getVersion())) {
+            FileTime time = attrs.lastModifiedTime();
+            long mtime = time.to(TimeUnit.SECONDS);
+            if (mtime + changingArtifactMaxAgeInS < startTimeInS) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isChangingArtifactVersion(String version) {
+        for (Pattern pattern : changingArtifactPatterns) {
+            Matcher matcher = pattern.matcher(version);
+            if (matcher.matches()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void clean(File file, Gav artifact, Collection results) {
