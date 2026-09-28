@@ -48,7 +48,16 @@ public class RepositoryCleaner extends DirectoryWalker
 
     protected final void handleDirectoryStart(File directory, int depth, Collection results) throws IOException {
 
-        for (File file : directory.listFiles()) {
+        if (directory == null || !directory.exists()) {
+            return;
+        }
+
+        File[] files = directory.listFiles();
+        if (files == null) {
+            throw new IOException("Unable to list directory " + directory.getAbsolutePath() + " (returned null)");
+        }
+
+        for (File file : files) {
             if (file.isDirectory()) continue;
             String fileName = file.getName();
 
