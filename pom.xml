@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>4.61</version>
+    <version>6.2211.v27f680c93c53</version>
     <relativePath />
   </parent>
 
@@ -17,7 +17,7 @@
     <revision>1.3</revision>
     <changelist>-SNAPSHOT</changelist>
     <gitHubRepo>jenkinsci/${project.artifactId}</gitHubRepo>
-    <jenkins.version>2.361.4</jenkins.version>
+<!--    <jenkins.version>2.361.4</jenkins.version>-->
 
     <!-- GEBIT: versions to be used for gebit-build support -->
     <java.version>21</java.version>
@@ -25,6 +25,9 @@
     <version.build>3.17.0</version.build>
     <version.gebit-build-extension>2.1.0</version.gebit-build-extension>
     <version.gebit-forked>1.1.0</version.gebit-forked>
+
+    <jenkins.baseline>2.479</jenkins.baseline>
+    <jenkins.version>${jenkins.baseline}.3</jenkins.version>
     <!-- GEBIT: end -->
 
     <!--TODO: change to true after the code cleanup-->
@@ -59,8 +62,8 @@
     <dependencies>
       <dependency>
         <groupId>io.jenkins.tools.bom</groupId>
-        <artifactId>bom-2.361.x</artifactId>
-        <version>2025.v816d28f1e04f</version>
+        <artifactId>bom-${jenkins.baseline}.x</artifactId>
+        <version>5054.v620b_5d2b_d5e6</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -74,11 +77,6 @@
         <artifactId>commons-net</artifactId>
         <version>3.9.0</version>
       </dependency>
-      <dependency>
-        <groupId>org.jenkins-ci.plugins</groupId>
-        <artifactId>junit</artifactId>
-        <version>1119.1121.vc43d0fc45561</version>
-      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -90,7 +88,6 @@
     <dependency>
       <groupId>org.jenkins-ci.main</groupId>
       <artifactId>maven-plugin</artifactId>
-      <version>3.21</version>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
