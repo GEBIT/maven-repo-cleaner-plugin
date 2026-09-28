@@ -3,7 +3,8 @@
   <f:section title="${%Maven Scheduled Repository Cleaner}">
     <f:entry title="${%Schedule}" field="timerSpec">
       <f:textarea name="mavenrepocleaner.cronSpec"
-                  checkUrl="'${rootURL}/trigger/TimerTrigger/check?value='+escape(this.value)"
+                  checkUrl="${rootURL}/trigger/TimerTrigger/check"
+                  checkDependsOn=""
                   value="${descriptor.cronSpec}" />
     </f:entry>
     <f:entry title="${%Expiration style}">
